@@ -1,0 +1,16 @@
+name: annoy_classifier
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.8
+  - pandas
+  - numpy
+  - scikit-learn
+  - matplotlib
+  - sentence-transformers
+  - annoy
+  - pip
+  - pyarrow
+  - pip:
+    - kagglehub
