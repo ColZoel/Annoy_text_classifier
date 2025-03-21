@@ -1,5 +1,5 @@
 """
-Use 1000k samples of previously scraped data to train and evaluate the model. produce Synthetic data by adding noise to the scraped data.
+Use 100k samples of previously scraped data to train and evaluate the model. produce Synthetic data by adding noise to the scraped data.
 
 
 REDDIT DATA
@@ -14,14 +14,16 @@ Run this file to download the dataset from Kaggle and the Google Drive link abov
 import kagglehub
 import shutil
 import os
+import random
 import pandas as pd
 from glob import glob
 import os.path
-
+import numpy as np
 
 def sample_for_training(data, num_obs=1000):
     """Sample data for training."""
     return data.sample(num_obs)
+
 
 def create_training_data(num_obs=1000):
     """Create training data from scraped data."""
@@ -32,6 +34,51 @@ def create_training_data(num_obs=1000):
     df = pd.concat([df, df1])
     training_data = sample_for_training(df, num_obs)
     training_data.to_csv('data/training_data.csv', index=False)
+
+
+def clean_data(data:np.array):
+    """
+    Standardize data for english ASCII-only characters.
+    :param data:
+    :return:
+    """
+    df = pd.DataFrame(data, columns=['X'])
+
+   # non-ascii
+    df['X'] = df['X'].str.encode('ascii', 'ignore').str.decode('ascii')
+
+    return df.X.to_numpy()
+
+
+
+def noisify(truevals: np.array):
+    """Add noise to the data."""
+
+    df = pd.DataFrame(truevals, columns=['X'])
+    if random.random() < 0.3:
+        df['X'] = df['X'].str.upper()
+    if random.random() > 0.5:
+        df['X'] = df['X'].str.lower()
+    if random.random() < 0.5:
+        df['X'] = df['X'].apply(lambda x: x + " " + random.choice(["Senior", "Junior", "Lead"]))
+    if random.random() < 0.3:
+        df['X'] = df['X'].apply(lambda x: "".join(list(x).pop(random.randint(0, len(x) - 1))))
+    if random.random() < 0.1:
+        df['X'] = df['X'].str[::-1]
+    if random.random() < 0.2:
+        df['X'] = df['X'].apply(lambda x: x.replace(" ", random.choice(["_", "-", ""])))
+    if random.random() < 0.2:
+        df['X'] = df['X'].apply(lambda x: x + str(random.randint(0, 99)))
+    if random.random() < 0.2:
+        df['X'] = df['X'].apply(lambda x: x[:random.randint(1, len(x))])
+    return df.X.to_numpy()
+
+
+def make_random_data(classes, num_obs=1000):
+    """Create random data with noise."""
+    true_values = np.random.choice(classes, num_obs)
+    noisy_data = noisify(true_values)
+    return true_values, noisy_data
 
 
 # Main function
