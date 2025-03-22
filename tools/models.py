@@ -50,14 +50,17 @@ def import_from_server(url, local_directory):
         raise ValueError(f"{e}")
 
     # Ensure the local directory exists
-    os.makedirs(os.path.join(local_directory, "models"), exist_ok=True)
+    if os.path.basename(local_directory) != "models":
+        os.makedirs(os.path.join(local_directory, "models"), exist_ok=True)
+        local_directory = os.path.join(local_directory, "models")
 
     filename = urlparse(url).path.split('/')[-1]
 
     # Extract the filename from the URL
-    local_filename = os.path.join(local_directory, "models", filename)
+    local_filename = os.path.join(local_directory, filename)
 
     # Send a GET request to the URL
+    print(f"Pulling {filename}. . .")
     response = requests.get(url, stream=True)
     response.raise_for_status()  # Check for request errors
 
