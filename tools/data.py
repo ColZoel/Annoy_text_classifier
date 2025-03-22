@@ -9,7 +9,7 @@ Data hosted at: https://drive.google.com/drive/folders/1XxNuhiei5taFR6gziofYAx0o
 KAGGLE DATA
 SOURCE: https://www.kaggle.com/datasets/jatinchawda/job-titles-and-description
 
-Run this file to download the dataset from Kaggle and the Google Drive link above.
+Run this file to download the dataset from Kaggle.
 """
 import kagglehub
 import shutil
@@ -20,20 +20,20 @@ from glob import glob
 import os.path
 import numpy as np
 
-def sample_for_training(data, num_obs=1000):
-    """Sample data for training."""
-    return data.sample(num_obs)
 
-
-def create_training_data(num_obs=1000):
+def create_training_data(num_obs=None):
     """Create training data from scraped data."""
 
     df = pd.read_parquet('data/kaggle_clean_data.parquet')
     df = df.rename(columns={"job_title": "title"})
     df1 = pd.read_parquet('data/reddit_data.parquet')
     df = pd.concat([df, df1])
-    training_data = sample_for_training(df, num_obs)
-    training_data.to_csv('data/training_data.csv', index=False)
+    df['label'] = ""
+
+    if num_obs:
+        df = df.sample(num_obs)
+
+    df.to_csv('data/training_data.csv', index=False)
 
 
 def clean_data(data:np.array):
@@ -46,9 +46,10 @@ def clean_data(data:np.array):
 
    # non-ascii
     df['X'] = df['X'].str.encode('ascii', 'ignore').str.decode('ascii')
+    # remove empty strings
+    df = df[df['X'] != ""]
 
     return df.X.to_numpy()
-
 
 
 def noisify(truevals: np.array):
