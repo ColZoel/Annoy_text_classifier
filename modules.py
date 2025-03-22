@@ -13,15 +13,7 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
 
-def create_training_data(classes, num_obs=1000):
-    """Create training data from scraped data."""
-    df = pd.read_parquet('data/kaggle_clean_data.parquet')
-    df = df.rename(columns={"job_title": "title"})
-    df1 = pd.read_parquet('data/reddit_data.parquet')
-    df = pd.concat([df, df1])
-
-
-def embed_batched(model, data, dim, batch_size=1000):
+def embed_batched(model, data, batch_size=1000):
     """embeddings in batches."""
 
     num_batches = (len(data) + batch_size - 1) // batch_size
@@ -41,13 +33,6 @@ def build_tree(embeddings, num_trees=10):
     print("Annoy index built with", num_trees, "trees.")
     return t
 
-
-# def predict_labels(tree, classes, embeddings, neighbors=1):
-#     """Predict the nearest neighbor labels for the given embeddings."""
-#     indices = np.array([tree.get_nns_by_vector(emb, neighbors) for emb in embeddings])
-#     neighbor_labels = np.array([[classes[idx] for idx in idxs] for idxs in indices])
-#     most_common_labels = np.array([max(set(labels), key=list(labels).count) for labels in neighbor_labels])
-#     return most_common_labels
 
 def predict_labels(tree, classes, embeddings, neighbors=1):
     """Predict the nearest neighbor labels for the given embeddings."""
@@ -133,20 +118,28 @@ def pipeline(model: str, labels: np.array, data: np.array, num_trees: int, num_n
     model = SentenceTransformer(model)
 
     # 2. Encode target classes
+    enc_start = time.time()
     print(f"Encoding {len(labels)} target label values")
     target_embeddings = model.encode(labels, convert_to_numpy=True, show_progress_bar=True)
+    print(f"(finished in {time.time() - enc_start:.2f} seconds, avg: {(time.time() - enc_start) / len(labels):.4f} sec/label)")
 
     # 3. Build Annoy Index for target classes
+    tree_start = time.time()
     print(f"Building Annoy index with {num_trees} trees")
     tree = build_tree(target_embeddings, num_trees=num_trees)
+    print(f"(finished in {time.time() - tree_start:.2f} seconds, avg: {(time.time() - tree_start) / len(labels):.4f} sec/label)")
 
     # 4. Encode feature space and classify
+    features_start = time.time()
     print(f"Encoding {len(data)} feature vectors")
-    feature_embeddings = embed_batched(model, data, target_embeddings.shape[1], batch_size=batch_size)
+    feature_embeddings = embed_batched(model, data, batch_size=batch_size)
+    print(f"(finished in {time.time() - features_start:.2f} seconds, avg: {(time.time() - features_start) / len(data):.4f} sec/label)")
 
     # 5. Predict labels
+    pred_start = time.time()
     print("Predicting labels")
     yhat = predict_labels(tree, labels, feature_embeddings, neighbors=num_neighbors)
+    print(f"(finished in {time.time() - pred_start:.2f} seconds, avg: {(time.time() - pred_start) / len(data):.4f} sec/label)")
 
     # 6. Visualize
     visualize(feature_embeddings, yhat, target_embeddings, labels, save=save_fig)
