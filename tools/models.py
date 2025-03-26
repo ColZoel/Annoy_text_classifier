@@ -1,7 +1,12 @@
+"""
+Tools to load a model from a remote server or the local directory.
+"""
+
 import os
 import requests
 from urllib.parse import urlparse
 from glob import glob
+
 
 def check_compression(url):
     """
@@ -92,13 +97,13 @@ def local_models(local_directory=None):
     return models
 
 
-def import_local(model_name):
+def import_local(model_name, *args, **kwargs):
     """
     Import a model from the local directory.
     :param model_name: Name of the model to import
     :return: The model object
     """
-    models = local_models()
+    models = local_models(*args, **kwargs)
     if model_name not in models:
         raise ValueError(f"{model_name} not found in {os.getcwd()}/models. Available models: {models}")
     return glob(f"models/{model_name}")[0]
