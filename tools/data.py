@@ -21,7 +21,48 @@ import os.path
 import numpy as np
 
 
-def create_training_data(num_obs=None):
+def clean_data(data):
+    """
+    Standardize data for english ASCII-only characters.
+    :param data:
+    :return:
+    """
+
+    if isinstance(data, pd.DataFrame):
+        df = data
+    if isinstance(data, np.ndarray):
+        df = pd.DataFrame(data, columns=['title'])
+    if isinstance(data, pd.Series):
+        df = data.to_frame()
+
+   # non-ascii
+    df['title'] = df['title'].str.encode('ascii', 'ignore').str.decode('ascii')
+    df['title'] = df['title'].str.replace(r'[^\w\s]', '', regex=True)  # remove punctuation
+    df['title'] = df['title'].str.replace(r'\d+', '', regex=True)  # remove digits
+    df['title'] = title_casing(df['title'])  # title casing
+    df['title'] = parentheses(df['title'])  # remove parentheses
+
+    # remove empty strings
+    df = df[df['title'] != ""]
+
+    return df.title.to_numpy()
+
+
+def title_casing(data):
+    """
+    Standardize casing to each word in the title.
+    """
+    return data.str.title()
+
+
+def parentheses(data):
+    """
+    Remove parentheses from the data.
+    """
+    return data.str.replace(r'\(.*\)', '', regex=True).str.strip()
+
+
+def create_eval_data(num_obs=None):
     """Create training data from scraped data."""
 
     df = pd.read_parquet('data/kaggle_clean_data.parquet')
@@ -33,23 +74,17 @@ def create_training_data(num_obs=None):
     if num_obs:
         df = df.sample(num_obs)
 
-    df.to_csv('data/training_data.csv', index=False)
+    df['title'] = clean_data(df['title'])
+
+    df.to_csv('data/eval.csv', index=False)
 
 
-def clean_data(data:np.array):
-    """
-    Standardize data for english ASCII-only characters.
-    :param data:
-    :return:
-    """
-    df = pd.DataFrame(data, columns=['X'])
-
-   # non-ascii
-    df['X'] = df['X'].str.encode('ascii', 'ignore').str.decode('ascii')
-    # remove empty strings
-    df = df[df['X'] != ""]
-
-    return df.X.to_numpy()
+def read_eval_data(path):
+    """Read the evaluation data."""
+    df = pd.read_csv(path)
+    y = df['label'].to_numpy()
+    X = df['title'].to_numpy()
+    return y, X
 
 
 def noisify(truevals: np.array):
@@ -117,5 +152,5 @@ if __name__ == "__main__":
 
     # Create training data
     if not os.path.exists("data/training_data.csv"):
-        create_training_data(num_obs=500)
+        create_eval_data(num_obs=500)
         print("Training data created.")
