@@ -17,7 +17,6 @@ import os
 import random
 import pandas as pd
 from glob import glob
-import os.path
 import numpy as np
 
 
@@ -110,8 +109,12 @@ def noisify(truevals: np.array):
     return df.X.to_numpy()
 
 
-def make_random_data(classes, num_obs=1000):
+def make_random_data(classes, num_obs=1000, colidx=0):
     """Create random data with noise."""
+    if isinstance(classes, str) and classes.endswith('.csv'):
+        df = pd.read_csv(classes)
+        classes = df.iloc[:, colidx].unique()
+
     true_values = np.random.choice(classes, num_obs)
     noisy_data = noisify(true_values)
     return true_values, noisy_data
