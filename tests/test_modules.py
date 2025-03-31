@@ -8,7 +8,7 @@ import requests
 
 # Import the classes and functions from your module.
 # Adjust the import if your module filename is different.
-from modules2 import (
+from modules import (
     timer,
     ModelDownloader,
     TransformerLoader,
