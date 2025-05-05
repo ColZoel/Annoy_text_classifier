@@ -42,7 +42,7 @@ This paper proposes leveraging an open-source transformer model with approximate
 \clearpage
 \section{Introduction}\label{sec:intro}
 
-The objective of this project is to create a highly accurate string match between a list of occupation titles inputted by tax filers and a list of target occupation classes.  As a classification problem, this is a complex challenge, particularly given the vast scale of the data. With an input size of more than 1 billion observations and 969 possible target categories, traditional approaches do not efficiently meet this objective. 
+The objective of this project is to create a highly accurate string match between a list of user-inputted occupation titles and a list of target occupation classes.  As a classification problem, this is a complex challenge, particularly given the vast scale of the data. With an input size of more than 1 billion observations and 969 possible target categories, traditional approaches do not efficiently meet this objective. 
 
 This project aims to develop a highly accurate classification model that maps user-submitted occupations to their correct classifications. Specifically, we seek to learn a function:
 \begin{align*}
@@ -287,7 +287,7 @@ For text classification tasks, LLMs can be evaluated with the same criteria as o
 In all cases, the score is in the range $[0,1]$ where a score close to 1 is preferred. Heuristically, a classifier with an F1 score greater than $0.8$ is considered a good model. Transformer models have been proven to increase this to $0.9$ or more\footnote{Most studies using Transformers on text classification use the BERT Transformer model or one of its offshoots, which are among the more "primitive" architectures. More recent models may yield even higher scores.} \cite{lu2022comparative}\cite{transformer-text-class}\cite{gokhan-trans-text-class}. 
 
 \section{Methodology}\label{sec:methodology}
-This project assists in collecting the data necessary for a subsequent economic analysis of the heterogeneous effects of previous occupations on firm founding. The objective of this project is to create a mapping of varied and noisy self-reported occupation titles from IRS Form 1040 to a structured set of ONET\footnote{\href{https://www.onetonline.org/find/all}{https://www.onetonline.org/find/all}} occupation classifications. We frame this task as a high-dimensional text classification problem and propose a scalable machine learning approach.
+This project assists in collecting the data necessary for a subsequent economic analysis of the heterogeneous effects of previous occupations on firm founding. The objective of this project is to create a mapping of varied and noisy self-reported occupation titles to a structured set of ONET\footnote{\href{https://www.onetonline.org/find/all}{https://www.onetonline.org/find/all}} occupation classifications. We frame this task as a high-dimensional text classification problem and propose a scalable machine learning approach.
 
 \subsection{Problem Definition}
 
